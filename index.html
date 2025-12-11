@@ -1,105 +1,94 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>スタンプラリー</title>
-
-  <style>
-    body { 
-      font-family: sans-serif; 
-      margin: 20px; 
-      background: url('background.jpg') center/cover no-repeat fixed;
-    }
-    h1, p { color: #f5c9f3; text-shadow: 0 1px 2px rgba(255,255,255,0.7); }
-
-    /* ★ 5行 × 2列の縦レイアウトに変更 ★ */
-    .stamp-grid { 
-      display: grid; 
-      grid-template-columns: repeat(2, 70px); 
-      grid-template-rows: repeat(5, 70px);
-      gap: 15px; 
-    }
-
-    .stamp { 
-      width: 70px; 
-      height: 70px; 
-      border-radius: 12px;
-      background: rgba(255,255,255,0.6);
-      backdrop-filter: blur(4px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      display: flex; 
-      justify-content: center; 
-      align-items: center;
-      transition: transform 0.25s ease-out;
-    }
-
-    /* 押された時に跳ねる */
-    .bounce {
-      animation: bounceAnim 0.4s ease-out;
-    }
-
-    @keyframes bounceAnim {
-      0% { transform: scale(0.6); }
-      60% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-
-    #msg { margin-top: 20px; font-size: 1.2em; color: #f5c9f3; }
-  </style>
-</head>
-
-<body>
-  <h1>スタンプラリー</h1>
-  <p>QRコードを読み取ると、スタンプが自動で追加されます。</p>
-
-  <div class="stamp-grid" id="stampGrid"></div>
-  <div id="msg"></div>
-
-  <script>
-    const MAX_STAMPS = 10;
-
-    const url = new URL(window.location.href);
-    const stampID =
-    url.searchParams.get("stamp_id") ||
-    url.searchParams.get("id") ||
-    url.searchParams.get("stamp");
-
-    const STORAGE_KEY = "myStampRally";
-    let stamps = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-    const msg = document.getElementById("msg");
-    if (stampID) {
-      if (!stamps.includes(stampID)) {
-        if (stamps.length < MAX_STAMPS) {
-          stamps.push(stampID);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(stamps));
-          msg.textContent = "新しいスタンプをゲットしました！";
-        } else {
-          msg.textContent = "最大数に達しています。";
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>スタンプラリー</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background: #f5f5f5;
         }
-      } else {
-        msg.textContent = "このスタンプはすでに取得済みです。";
-      }
-    }
 
-    const stampGrid = document.getElementById("stampGrid");
-    for (let i = 0; i < MAX_STAMPS; i++) {
-      const div = document.createElement("div");
-      div.className = "stamp" + (stamps[i] ? " filled" : "");
+        h1 {
+            margin-top: 20px;
+        }
 
-      if (stamps[i]) {
-        const img = document.createElement('img');
-        img.src = `stamp_${stamps[i]}.png`;
-        img.style.width = '100%';
-        img.style.height = '100%';
-        img.style.objectFit = 'cover';
-        div.appendChild(img);
-        div.classList.add('bounce');
-      }
+        #stampContainer {
+            width: 90%;
+            max-width: 400px;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column; /* ←縦に5個並べる */
+            gap: 10px;
+        }
 
-      stampGrid.appendChild(div);
-    }
-  </script>
+        .stamp {
+            width: 100%;
+            height: 60px;
+            background: #ddd;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .stamped {
+            background: #ff6f61;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>スタンプラリー</h1>
+    <p>QRコードを読み取るとスタンプが追加されるよ！</p>
+
+    <div id="stampContainer">
+        <div class="stamp" id="stamp1">スタンプ1</div>
+        <div class="stamp" id="stamp2">スタンプ2</div>
+        <div class="stamp" id="stamp3">スタンプ3</div>
+        <div class="stamp" id="stamp4">スタンプ4</div>
+        <div class="stamp" id="stamp5">スタンプ5</div>
+    </div>
+
+    <script>
+        // URLパラメータを取得
+        const url = new URL(window.location.href);
+
+        // ★ 修正：stamp_id / id / stamp のどれでも取得可能に
+        const stampID =
+            url.searchParams.get("stamp_id") ||
+            url.searchParams.get("id") ||
+            url.searchParams.get("stamp");
+
+        // ローカルストレージからすでに押したスタンプを読み込み
+        const saved = JSON.parse(localStorage.getItem("stamps") || "[]");
+
+        // 読み込んだスタンプを反映
+        saved.forEach(id => {
+            const el = document.getElementById(`stamp${id}`);
+            if (el) el.classList.add("stamped");
+        });
+
+        // 新しく読み込んだスタンプを追加
+        if (stampID) {
+            const stampNum = Number(stampID);
+            if (!saved.includes(stampNum)) {
+                saved.push(stampNum);
+                localStorage.setItem("stamps", JSON.stringify(saved));
+            }
+
+            const el = document.getElementById(`stamp${stampNum}`);
+            if (el) el.classList.add("stamped");
+        }
+    </script>
+
 </body>
 </html>
+
