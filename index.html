@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>スタンプラリー</title>
+
+  <style>
+    body { 
+      font-family: sans-serif; 
+      margin: 20px; 
+      background: url('background.jpg') center/cover no-repeat fixed;
+    }
+    h1, p { color: #003f7f; text-shadow: 0 1px 2px rgba(255,255,255,0.7); }
+
+    .stamp-grid { 
+      display: grid; 
+      grid-template-columns: repeat(5, 70px); 
+      gap: 15px; 
+    }
+
+    .stamp { 
+      width: 70px; 
+      height: 70px; 
+      border-radius: 12px;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      display: flex; 
+      justify-content: center; 
+      align-items: center;
+      transition: transform 0.25s ease-out;
+    }
+
+    /* 押された時に跳ねる */
+    .bounce {
+      animation: bounceAnim 0.4s ease-out;
+    }
+
+    @keyframes bounceAnim {
+      0% { transform: scale(0.6); }
+      60% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    #msg { margin-top: 20px; font-size: 1.2em; color: #f5c9f3; }
+  </style>
+</head>
+
+<body>
+  <h1>スタンプラリー</h1>
+  <p>QRコードを読み取ると、スタンプが自動で追加されます。</p>
+
+  <div class="stamp-grid" id="stampGrid"></div>
+  <div id="msg"></div>
+
+  <script>
+    const MAX_STAMPS = 10;
+
+    const url = new URL(window.location.href);
+    const stampID = url.searchParams.get("id");
+
+    const STORAGE_KEY = "myStampRally";
+    let stamps = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    const msg = document.getElementById("msg");
+    if (stampID) {
+      if (!stamps.includes(stampID)) {
+        if (stamps.length < MAX_STAMPS) {
+          stamps.push(stampID);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(stamps));
+          msg.textContent = "新しいスタンプをゲットしました！";
+        } else {
+          msg.textContent = "最大数に達しています。";
+        }
+      } else {
+        msg.textContent = "このスタンプはすでに取得済みです。";
+      }
+    }
+
+    const stampGrid = document.getElementById("stampGrid");
+    for (let i = 0; i < MAX_STAMPS; i++) {
+      const div = document.createElement("div");
+      div.className = "stamp" + (stamps[i] ? " filled" : "");
+
+      if (stamps[i]) {
+        const img = document.createElement('img');
+        img.src = `stamp_${stamps[i]}.png`;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        div.appendChild(img);
+        div.classList.add('bounce');
+      }
+
+      stampGrid.appendChild(div);
+    }
+  </script>
+</body>
+</html>
