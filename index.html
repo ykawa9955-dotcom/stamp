@@ -17,13 +17,13 @@
             margin-top: 20px;
         }
 
-        /* ▼▼ ここを grid に変更！ ▼▼ */
+        /* 2列配置 */
         #stampContainer {
             width: 90%;
             max-width: 400px;
             margin: 20px auto;
             display: grid;
-            grid-template-columns: 1fr 1fr;   /* 2列 */
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
@@ -44,7 +44,7 @@
             color: white;
         }
 
-        /* ★ バウンスアニメーション */
+        /* バウンス */
         @keyframes bounceAnim {
             0% { transform: scale(0.6); }
             60% { transform: scale(1.2); }
@@ -54,7 +54,6 @@
             animation: bounceAnim 0.4s ease-out;
         }
 
-        /* GET ボタン */
         #getBtn {
             width: 60%;
             padding: 12px 0;
@@ -68,7 +67,6 @@
             cursor: pointer;
         }
 
-        /* 手動リセットボタン */
         #resetBtn {
             width: 33%;
             padding: 8px 0;
@@ -97,10 +95,12 @@
     <h1>スタンプラリー</h1>
     <p>QRコードを読み取ったら、</p><p>下の「スタンプGET」ボタンを押してね！</p>
 
-    <!-- 効果音ファイル -->
+    <!-- ★ 取得数の表示場所 -->
+    <p id="stampCount" style="font-weight:bold; margin-top:5px;"></p>
+
+    <!-- 効果音 -->
     <audio id="getSound" src="get.mp3" preload="auto"></audio>
 
-    <!-- ▼▼ スタンプ10個 ▼▼ -->
     <div id="stampContainer">
         <div class="stamp" id="stamp1">1</div>
         <div class="stamp" id="stamp2">2</div>
@@ -114,7 +114,6 @@
         <div class="stamp" id="stamp10">10</div>
     </div>
 
-    <!-- GETボタン -->
     <button id="getBtn">スタンプ GET!!</button>
 
     <div id="resetWrapper">
@@ -133,7 +132,6 @@
         }
         localStorage.setItem(TODAY_KEY, today);
 
-        /* QR 読み込み：番号取得 */
         const url = new URL(window.location.href);
         const qrStamp =
             url.searchParams.get("stamp_id") ||
@@ -142,13 +140,24 @@
 
         let saved = JSON.parse(localStorage.getItem(STAMP_KEY) || "[]");
 
-        /* 保存されているスタンプを反映 */
+        /* ▼ 現在のスタンプ数を表示する関数 */
+        function updateStampCount() {
+            const total = 10;
+            const count = saved.length;
+            document.getElementById("stampCount").textContent =
+                `【現在のスタンプ数：${count} / ${total}】`;
+        }
+
+        /* 初回表示 */
+        updateStampCount();
+
+        /* 色を反映 */
         saved.forEach(id => {
             const el = document.getElementById(`stamp${id}`);
             if (el) el.classList.add("stamped");
         });
 
-        /* GETボタン処理 */
+        /* GETボタン */
         document.getElementById("getBtn").addEventListener("click", () => {
             if (!qrStamp) {
                 alert("QRコードを読み込んでから押してね！");
@@ -176,18 +185,19 @@
                         el.classList.add("bounce");
                     });
                 });
-                el.addEventListener(
-                    "animationend",
-                    () => el.classList.remove("bounce"),
-                    { once: true }
-                );
+                el.addEventListener("animationend", () => {
+                    el.classList.remove("bounce");
+                }, { once: true });
+
+                /* ▼▼★ 取得数 更新 ★▼▼ */
+                updateStampCount();
 
             } else {
                 alert("このスタンプはもう取っているよ！");
             }
         });
 
-        /* リセットボタン */
+        /* リセット */
         document.getElementById("resetBtn").addEventListener("click", () => {
             if (confirm("スタンプをリセットしますか？")) {
                 localStorage.removeItem(STAMP_KEY);
