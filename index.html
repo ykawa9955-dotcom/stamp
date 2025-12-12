@@ -22,7 +22,7 @@
             max-width: 400px;
             margin: 20px auto;
             display: flex;
-            flex-direction: column; /* ←縦に5個並べる */
+            flex-direction: column;
             gap: 10px;
         }
 
@@ -36,6 +36,7 @@
             justify-content: center;
             font-size: 20px;
             font-weight: bold;
+            transition: transform 0.2s;
         }
 
         .stamped {
@@ -43,30 +44,39 @@
             color: white;
         }
 
-        /* ★ 手動リセットボタンの位置・サイズ・色を調整 ★ */
+        /* ★ 手動リセットボタン調整 ★ */
         #resetBtn {
-            width: 33%;                /* ワイドの1/3に */
+            width: 33%;
             padding: 8px 0;
-            background: #4D8CFF;       /* 青系の爽やかカラー */
+            background: #4D8CFF;
             color: white;
             border: none;
             border-radius: 8px;
             font-size: 14px;
             cursor: pointer;
-
-            /* 右寄せにするための設定 */
             align-self: flex-end;
             margin-right: 5%;
             margin-top: 10px;
         }
 
-        /* スマホで少し右に寄せ強調 */
         #resetWrapper {
             width: 90%;
             max-width: 400px;
             margin: 0 auto;
             display: flex;
-            justify-content: flex-end; /* ★ ボタンを右寄せ */
+            justify-content: flex-end;
+        }
+
+        /* ★ バウンスアニメーション ★ */
+        @keyframes bounce {
+            0%   { transform: scale(1); }
+            30%  { transform: scale(1.25); }
+            60%  { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        .bounce {
+            animation: bounce 0.4s ease-out;
         }
     </style>
 </head>
@@ -83,16 +93,14 @@
         <div class="stamp" id="stamp5">スタンプ5</div>
     </div>
 
-    <!-- ★ ボタンを右寄せのラッパーに包む -->
     <div id="resetWrapper">
         <button id="resetBtn">リセット</button>
     </div>
 
     <script>
         /* ------------------------------
-            ① 自動リセット処理
+            ① 自動リセット
         ------------------------------ */
-
         const TODAY_KEY = "lastAccessDate";
         const STAMP_KEY = "stamps";
 
@@ -102,13 +110,11 @@
         if (lastDate && lastDate !== today) {
             localStorage.removeItem(STAMP_KEY);
         }
-
         localStorage.setItem(TODAY_KEY, today);
 
         /* ------------------------------
             ② スタンプ処理
         ------------------------------ */
-
         const url = new URL(window.location.href);
 
         const stampID =
@@ -125,19 +131,27 @@
 
         if (stampID) {
             const stampNum = Number(stampID);
-            if (!saved.includes(stampNum)) {
+            const el = document.getElementById(`stamp${stampNum}`);
+
+            if (el && !saved.includes(stampNum)) {
+                // 保存
                 saved.push(stampNum);
                 localStorage.setItem(STAMP_KEY, JSON.stringify(saved));
-            }
 
-            const el = document.getElementById(`stamp${stampNum}`);
-            if (el) el.classList.add("stamped");
+                // stamped 適用
+                el.classList.add("stamped");
+
+                // ★ バウンス効果を付ける
+                el.classList.add("bounce");
+                el.addEventListener("animationend", () => {
+                    el.classList.remove("bounce");
+                }, { once: true });
+            }
         }
 
         /* ------------------------------
-            ③ 手動リセット処理
+            ③ 手動リセット
         ------------------------------ */
-
         document.getElementById("resetBtn").addEventListener("click", () => {
             if (confirm("スタンプをリセットしますか？")) {
                 localStorage.removeItem(STAMP_KEY);
